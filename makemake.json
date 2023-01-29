@@ -1,0 +1,15 @@
+{
+    "targets": [
+        {
+            "type": "executable",
+            "name": "ascii_font",
+            "cc": "gcc",
+            "cflags": "`pkg-config --cflags freetype2`",
+            "libs": "`pkg-config --libs freetype2`",
+            "install": "install -m755 ascii_font /usr/bin",
+            "sources": [
+                "main.c"
+            ]
+        }
+    ]
+}
