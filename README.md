@@ -14,12 +14,16 @@ Generated file list:
 * `ascii_font.h` - the header file
 * `preview.ppm` - a preview image
 
+Read the array as `ascii_font[character][y][x]` to get pixel gray scale value.
+
+> You can also look on the gray scale value as alpha channel value.
+
 Example:  
 
 ```
 $ ls
 
-$ ascii_font /usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf 64
+$ ascii_font /usr/share/fonts/truetype/freefont/FreeMono.ttf 32
 $ ls
 ascii_font.h  preview.ppm
 ```
@@ -32,53 +36,42 @@ Header usage example by SDL2:
 #define ASCII_FONT_IMPLEMENTATION
 #include "ascii_font.h"
 
-void draw_text(SDL_Renderer* renderer, const char* text, int x, int y, SDL_Color color)
+void draw_char(SDL_Renderer* renderer, int x, int y, char ch, Uint8 r, Uint8 g, Uint8 b)
 {
-    SDL_Texture* texture = SDL_CreateTexture(renderer, 
-                                                SDL_PIXELFORMAT_RGBA32, 
-                                                SDL_TEXTUREACCESS_TARGET, 
-                                                ASCII_FONT_WIDTH, 
-                                                ASCII_FONT_HEIGHT);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    for (int dy = 0; dy < ASCII_FONT_HEIGHT; dy++)
+    {
+        for (int dx = 0; dx < ASCII_FONT_WIDTH; dx++)
+        {
+            SDL_SetRenderDrawColor(renderer, r, g, b, ascii_font[(size_t)ch][dy][dx]);
+            SDL_RenderDrawPoint(renderer, x + dx, y + dy);
+        }
+    }
+}
 
-    uint8_t points[4 * ASCII_FONT_WIDTH * ASCII_FONT_HEIGHT];
-    
+void draw_text(SDL_Renderer* renderer, int x, int y, const char* text, Uint8 r, Uint8 g, Uint8 b)
+{    
     for (size_t i = 0; text[i] != 0; i++)
     {
-        for (size_t y = 0; y < ASCII_FONT_HEIGHT; y++)
-        {
-            for (size_t x = 0; x < ASCII_FONT_WIDTH; x++)
-            {
-                points[4 * (y*ASCII_FONT_WIDTH + x)] = color.r;
-                points[4 * (y*ASCII_FONT_WIDTH + x) + 1] = color.g;
-                points[4 * (y*ASCII_FONT_WIDTH + x) + 2] = color.b;
-                points[4 * (y*ASCII_FONT_WIDTH + x) + 3] = ascii_font[text[i]][y][x];
-            }
-        }
-        SDL_UpdateTexture(texture, NULL, points, ASCII_FONT_WIDTH * 4);
-        SDL_Rect rect;
-        rect.x = x + i * ASCII_FONT_WIDTH;
-        rect.y = y;
-        rect.w = ASCII_FONT_WIDTH;
-        rect.h = ASCII_FONT_HEIGHT;
-        SDL_RenderCopy(renderer, texture, NULL, &rect);
+        draw_char(renderer, x + i * ASCII_FONT_WIDTH, y, text[i], r, g, b);
     }
-    
 }
 
 int main(int argc, char* argv[])
 {
+    (void)argc;
+    (void)argv;
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
-    SDL_Window* window = SDL_CreateWindow("freetype2 demo", 
+    SDL_Window* window = SDL_CreateWindow("ascii_font demo", 
                                             SDL_WINDOWPOS_UNDEFINED, 
                                             SDL_WINDOWPOS_UNDEFINED, 
-                                            640, 
-                                            480, 
+                                            26 * ASCII_FONT_WIDTH, 
+                                            7 * ASCII_FONT_HEIGHT, 
                                             SDL_WINDOW_SHOWN);
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     while (1)
     {
@@ -92,7 +85,14 @@ int main(int argc, char* argv[])
                 goto EXIT;
         }
 
-        draw_text(renderer, "Hello", 0, 0, (SDL_Color){0, 255, 0});
+        draw_text(renderer, 0, 0, "ascii_font example", 255, 255, 255);
+        draw_text(renderer, 0, ASCII_FONT_HEIGHT, "ABCDEFGHIJKLMNOPQRSTUVWXUZ", 255, 0, 0);
+        draw_text(renderer, 0, 2 * ASCII_FONT_HEIGHT, "abcdefghijklmnopqrstuvwxyz", 0, 255, 0);
+        draw_text(renderer, 0, 3 * ASCII_FONT_HEIGHT, "ABCDEFGHIJKLMNOPQRSTUVWXUZ", 0, 0, 255);
+        draw_text(renderer, 0, 4 * ASCII_FONT_HEIGHT, "abcdefghijklmnopqrstuvwxyz", 255, 255, 0);
+        draw_text(renderer, 0, 5 * ASCII_FONT_HEIGHT, "ABCDEFGHIJKLMNOPQRSTUVWXUZ", 0, 255, 255);
+        draw_text(renderer, 0, 6 * ASCII_FONT_HEIGHT, "abcdefghijklmnopqrstuvwxyz", 255, 0, 255);
+
         SDL_RenderPresent(renderer);
     }
 
@@ -105,4 +105,4 @@ EXIT:
 }
 ```
 
-![header example](https://raw.githubusercontent.com/hubenchang0515/resource/master/ascii_font/example.png)
+![header-usage-example](https://raw.githubusercontent.com/hubenchang0515/resource/master/ascii_font/example.png)
