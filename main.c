@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
         ptrdiff_t offset = size * ch;
         ptrdiff_t top = (face->size->metrics.ascender/64 - face->glyph->bitmap_top);
-        ptrdiff_t left = face->glyph->bitmap_left / 64;
+        ptrdiff_t left = face->glyph->bitmap_left;
 
         for (ptrdiff_t y = 0; y < face->glyph->bitmap.rows; y++)
         {
